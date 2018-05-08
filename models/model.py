@@ -114,6 +114,16 @@ class VGG19(BasicModule):
                                         nn.Dropout(p=0.5),
                                         nn.Linear(4096, 10))
 
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight.data)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight.data)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
     def forward(self, x):
         x = self.features(x)        
         x = x.view(x.size(0), -1)
@@ -190,5 +200,5 @@ class NIN(BasicModule):
 
 if __name__ == '__main__':
     data = torch.randn((128, 3, 32, 32))
-    m = NIN()
-    print(m(data).size())
+    model = VGG19()
+    print(model(data))
