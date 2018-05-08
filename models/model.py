@@ -9,6 +9,7 @@ auther: helloholmes
 import torch
 import time
 import torch.nn.functional as F
+import torchvision.models as models
 from torch import nn
 
 class BasicModule(nn.Module):
@@ -99,6 +100,28 @@ class VGG19(BasicModule):
 
     def forward(self, x):
         x = self.features(x)        
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+
+class VGG19_pretrain(BasicModule):
+    # the input size: (batch, 3, 32, 32)
+    def __init__(self):
+        super(VGG19_pretrain, self).__init__()
+        model = models.vgg19(pretrained=True)
+        self.features = model.features
+        for param in self.features.parameters():
+            param.requires_grad = False
+        self.classifier = nn.Sequential(nn.Linear(512, 4096),
+                                        nn.ReLU(True),
+                                        nn.Dropout(p=0.5),
+                                        nn.Linear(4096, 4096),
+                                        nn.ReLU(True),
+                                        nn.Dropout(p=0.5),
+                                        nn.Linear(4096, 10))
+
+    def forward(self, x):
+        x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
