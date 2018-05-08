@@ -110,8 +110,8 @@ class VGG19_pretrain(BasicModule):
         super(VGG19_pretrain, self).__init__()
         model = models.vgg19(pretrained=True)
         self.features = model.features
-        for param in self.features.parameters():
-            param.requires_grad = False
+        # for param in self.features.parameters():
+        #     param.requires_grad = False
         self.classifier = nn.Sequential(nn.Linear(512, 4096),
                                         nn.ReLU(True),
                                         nn.Dropout(p=0.5),
@@ -125,3 +125,44 @@ class VGG19_pretrain(BasicModule):
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
+
+class NIN(BasicModule):
+    # the input size: (batch, 3, 32, 32)
+    def __init__(self):
+        super(NIN, self).__init__()
+        self.features = nn.Sequential(nn.Conv2d(3, 192, 5, 1, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 160, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(160, 96, 1),
+                                    nn.ReLU(True),
+                                    nn.MaxPool2d(3, 3),
+                                    nn.Dropout(p=0.5),
+                                    nn.Conv2d(96, 192, 5, 1, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 192, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 192, 1),
+                                    nn.ReLU(True),
+                                    nn.MaxPool2d(3, 3),
+                                    nn.Dropout(p=0.5),
+                                    nn.Conv2d(192, 192, 3, 1, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 192, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 192, 1),
+                                    nn.ReLU(True),
+                                    nn.Conv2d(192, 10, 1),
+                                    nn.ReLU(True),
+                                    nn.AvgPool2d(2, 2),
+                                    nn.Softmax(dim=1)
+                                    )
+
+    def forward(self, x):
+        x = self.features(x)
+        return x.view(x.size(0), -1)
+
+if __name__ == '__main__':
+    data = torch.randn((128, 3, 32, 32))
+    m = NIN()
+    print(m(data).size())
