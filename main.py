@@ -9,6 +9,8 @@ auther: helloholmes
 import os
 import torch
 import torchvision as tv
+import itchat
+import time
 from torch import nn
 from tqdm import tqdm
 from torchnet import meter
@@ -17,6 +19,9 @@ from torchvision import transforms as T
 from torch.utils.data import DataLoader
 from utils.visualize import Visualizer
 from config import DefaultConfig
+
+def itchat_send(msg):
+    itchat.send(msg=msg+'\n'+time.asctime(time.localtime(time.time())), toUserName='filehelper')
 
 def dataloader(root, batch_size, num_workers):
     transform = T.Compose([
@@ -81,6 +86,9 @@ def train(opt):
         test_cm, test_accuracy = test(model_train, testloader, opt)
         vis.plot('test_accuracy', test_accuracy)
 
+        if (epoch+1)%20 == 0:
+            itchat_send('epoch'+str(epoch+1)+': loss: '+str(loss_meter.value()[0])+'\ntest accuracy: '+str(test_accuracy))
+
         # updata learning rate
         if loss_meter.value()[0] > previous_loss:
             lr = lr * opt.lr_decay
@@ -113,8 +121,11 @@ def test(model_train, dataloader, opt):
     return confusion_matrix, accuracy
 
 if __name__ == '__main__':
+    # login itchat
+    itchat.auto_login()
+    itchat_send('start!')
 
     opt = DefaultConfig()
-    opt.parse({'model': 'VGG19', 'max_epoch': 30, 'weight_decay': 1e-4, 'lr': 0.1})
+    opt.parse({'model': 'VGG19', 'max_epoch': 200, 'weight_decay': 15e-4, 'lr': 0.1})
 
     train(opt)
