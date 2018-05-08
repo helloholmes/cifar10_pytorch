@@ -46,9 +46,11 @@ def train(opt):
 
     criterion = torch.nn.CrossEntropyLoss()
     lr = opt.lr
-    optimizer = torch.optim.Adam(model_train.parameters(),
+    optimizer = torch.optim.SGD(model_train.parameters(),
                                 lr=lr,
-                                weight_decay=opt.weight_decay)
+                                momentum=0.9,
+                                weight_decay=opt.weight_decay,
+                                nesterov=True)
 
     # meter
     loss_meter = meter.AverageValueMeter()
@@ -106,13 +108,13 @@ def test(model_train, dataloader, opt):
         correct_num += (predict.cpu() == label).sum()
 
     model_train.train()
-    accuracy = 100 * correct_num /total_num
+    accuracy = 100 * float(correct_num) / float(total_num)
 
     return confusion_matrix, accuracy
 
 if __name__ == '__main__':
 
     opt = DefaultConfig()
-    opt.parse({'model': 'LeNet', 'max_epoch': 50})
+    opt.parse({'model': 'VGG19', 'max_epoch': 30, 'weight_decay': 1e-4, 'lr': 0.1})
 
     train(opt)
