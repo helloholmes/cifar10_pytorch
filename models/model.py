@@ -11,6 +11,7 @@ import time
 import torch.nn.functional as F
 import torchvision.models as models
 from torch import nn
+from resnet import ResNet
 
 class BasicModule(nn.Module):
     def __init__(self):
@@ -200,5 +201,5 @@ class NIN(BasicModule):
 
 if __name__ == '__main__':
     data = torch.randn((128, 3, 32, 32))
-    model = VGG19()
-    print(model(data))
+    model = ResNet()
+    print(model(data).size())
